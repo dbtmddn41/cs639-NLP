@@ -33,6 +33,7 @@ The submission file should be a zip file with the following structure (assuming 
 - CAMPUSID/sst-test-output.txt `# output of the test set for SST data`
 - CAMPUSID/cfimdb-dev-output.txt `# output of the dev set for CFIMDB data`
 - CAMPUSID/cfimdb-test-output.txt `# output of the test set for CFIMDB data`
+- CAMPUSID/run_exp.sh `# the bash script to rerun your experiments. If you use different hyperparameters for main.py (e.g., --emb_size 512), specify them in this script.`
 - CAMPUSID/report.pdf `# (optional), report. here you can describe anything particularly new or interesting that you did`
 - CAMPUSID/README `# (optional) only if you use pre-trained word vectors such as GloVE and FastText. Do not upload the word embedding file. Instead, mention in the README with a download link to the word embedding file that you use for "--emb_file" in main.py.`
 
