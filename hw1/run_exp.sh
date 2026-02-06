@@ -1,6 +1,7 @@
-# Step 0. Change this to your campus ID
-CAMPUSID='9xx1234567'
-mkdir -p $CAMPUSID
+# Step 0. Output directory (baseline)
+CAMPUSID='baseline'
+OUTPUT_DIR="${CAMPUSID}"
+mkdir -p "${OUTPUT_DIR}"
 
 # Step 1. (Optional) Any preprocessing step, e.g., downloading pre-trained word embeddings
 wget https://nlp.stanford.edu/data/glove.6B.zip
@@ -13,9 +14,9 @@ python main.py \
     --train "data/${PREF}-train.txt" \
     --dev "data/${PREF}-dev.txt" \
     --test "data/${PREF}-test.txt" \
-    --dev_output "${CAMPUSID}/${PREF}-dev-output.txt" \
-    --test_output "${CAMPUSID}/${PREF}-test-output.txt" \
-    --model "${CAMPUSID}/${PREF}-model.pt"
+    --dev_output "${OUTPUT_DIR}/${PREF}-dev-output.txt" \
+    --test_output "${OUTPUT_DIR}/${PREF}-test-output.txt" \
+    --model "${OUTPUT_DIR}/${PREF}-model.pt"
 
 ##  2.2 Run experiments on CF-IMDB
 PREF='cfimdb'
@@ -23,16 +24,21 @@ python main.py \
     --train "data/${PREF}-train.txt" \
     --dev "data/${PREF}-dev.txt" \
     --test "data/${PREF}-test.txt" \
-    --dev_output "${CAMPUSID}/${PREF}-dev-output.txt" \
-    --test_output "${CAMPUSID}/${PREF}-test-output.txt" \
-    --model "${CAMPUSID}/${PREF}-model.pt"
+    --dev_output "${OUTPUT_DIR}/${PREF}-dev-output.txt" \
+    --test_output "${OUTPUT_DIR}/${PREF}-test-output.txt" \
+    --model "${OUTPUT_DIR}/${PREF}-model.pt"
 
 
-# Step 3. Prepare submission:
-##  3.1. Copy your code to the $CAMPUSID folder
-for file in 'main.py' 'model.py' 'vocab.py' 'setup.py'; do
-	cp $file ${CAMPUSID}/
-done
-##  3.2. Compress the $CAMPUSID folder to $CAMPUSID.zip (containing only .py/.txt/.pdf/.sh files)
-python prepare_submit.py ${CAMPUSID} ${CAMPUSID}
-##  3.3. Submit the zip file to Canvas (https://canvas.wisc.edu/courses/292771/assignments)! Congrats!
+# Step 3. Prepare submission (optional):
+# Set PREPARE_SUBMIT=1 to enable packaging.
+if [ "${PREPARE_SUBMIT:-0}" = "1" ]; then
+    ##  3.1. Copy your code to the $OUTPUT_DIR folder
+    for file in 'main.py' 'model.py' 'vocab.py' 'setup.py' 'run_exp.sh'; do
+        if [ -f "$file" ]; then
+            cp "$file" "${OUTPUT_DIR}/"
+        fi
+    done
+    ##  3.2. Compress the $OUTPUT_DIR folder to $CAMPUSID.zip (containing only .py/.txt/.pdf/.sh files)
+    python prepare_submit.py "${OUTPUT_DIR}" ${CAMPUSID}
+    ##  3.3. Submit the zip file to Canvas (https://canvas.wisc.edu/courses/292771/assignments)! Congrats!
+fi

@@ -1,0 +1,15 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+__pycache__/
+*.pyc
+*.txt
+*.zip
+
+.DS_Store
+
+# PyTorch model files
+*.pt
