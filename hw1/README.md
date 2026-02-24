@@ -14,11 +14,11 @@ The most important files it contains are the following:
 Important Notes:
 - There is a detailed description of the [code structure](#code-structure) below, including a description of which parts you will need to implement. 
 - The only allowed external library is `numpy` and `pytorch`, no other external libraries are allowed. As the datasets are small, a DAN model with a similar size in their origial paper can be trained within a few minutes (<30 minutes) using CPU, while it's also encouraged to train more advanced models that may require GPU. Please check available resources such as [CHTC](https://chtc.cs.wisc.edu/) or [Google's Colab](https://colab.research.google.com/).
-- We will run your code with the following commands (i.e., `run_exp.sh`) using both the original `main.py` and your updated `model.py` if you make any modifications there. Because of this, make sure that whichever setting you think is best is reproducible using exactly these commands (where you replace `CAMPUSID` with your 10-digit campus ID):
+- We will run your code using your submitted bash script (i.e., `run_exp.sh`). This script will run both your updated `main.py` and `model.py`. Because of this, make sure that whichever setting you think is best is reproducible using your modified bash script. For example, you should replace `CAMPUSID` with your 10-digit campus ID:
     - `CAMPUSID="9xx1234567"`
     - `mkdir -p CAMPUSID`
     - `python main.py --train=data/sst-train.txt --dev=data/sst-dev.txt --test=data/sst-test.txt --dev_out=$CAMPUSID/sst-dev-output.txt --test_out=$CAMPUSID/sst-test-output.txt`
-    - `python main.py --train=data/cfimdb-train.txt --dev=data/cfimdb-dev.txt --test=data/cfimdb-test.txt --dev_out=CAMPUSID/cfimdb-dev-output.txt --test_out=CAMPUSID/cfimdb-test-output.txt`
+    - `python main.py --train=data/cfimdb-train.txt --dev=data/cfimdb-dev.txt --test=data/cfimdb-test.txt --dev_output=CAMPUSID/cfimdb-dev-output.txt --test_output=CAMPUSID/cfimdb-test-output.txt`
 - Please remember to set your default hyper-parameter settings in your own `run_exp.sh` since we may run your experiment by `bash run_exp.sh` (without extra arguments).
 - Reference accuracies: If you implement things exactly in our way and use the default hyper-parameters and use the same environment (python 3.8 + numpy 1.21.1 + pytorch 1.10.2), you may get the accuracies of dev=0.3951, test=0.4122, and on cfimdb dev=0.9224.
 
