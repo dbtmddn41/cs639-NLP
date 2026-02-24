@@ -42,8 +42,13 @@ def build_split_expr(special_tokens: list[str]) -> str:
         parts = re.split(split_expr, text)
         parts should include "<|endoftext|>" as an element.
     """
-    # TODO (student): implement
-    raise NotImplementedError
+    if not special_tokens:
+        # No special tokens: return a pattern that never matches
+        return r'(?!x)x'
+    escaped = [re.escape(tok) for tok in special_tokens]
+    # Sort by length descending so longer tokens are matched first (greedy)
+    escaped.sort(key=len, reverse=True)
+    return '(' + '|'.join(escaped) + ')'
 
 
 def pretokenize_text(text: str, special_tokens: list[str]) -> Counter[tuple[int, ...]]:
@@ -59,8 +64,30 @@ def pretokenize_text(text: str, special_tokens: list[str]) -> Counter[tuple[int,
     - Special tokens should be treated as atomic tokens.
     - For normal text pieces, run PAT and count each match.
     """
-    # TODO: implement
-    raise NotImplementedError
+    counts: Counter[tuple[int, ...]] = Counter()
+    special_token_set = set(special_tokens)
+
+    if special_tokens:
+        split_expr = build_split_expr(special_tokens)
+        parts = re.split(split_expr, text)
+    else:
+        parts = [text]
+
+    for part in parts:
+        if not part:
+            continue
+        if part in special_token_set:
+            # Treat the entire special token as a single atomic unit
+            byte_tuple = tuple(part.encode('utf-8'))
+            counts[byte_tuple] += 1
+        else:
+            # Apply GPT-2 PAT regex to split normal text into pre-tokens
+            for match in re.finditer(PAT, part):
+                token = match.group()
+                byte_tuple = tuple(token.encode('utf-8'))
+                counts[byte_tuple] += 1
+
+    return counts
 
 
 def process_chunk(
@@ -81,9 +108,7 @@ def process_chunk(
         f.seek(start)
         chunk = f.read(end - start).decode("utf-8", errors="ignore")
 
-    # TODO: you may directly call pretokenize_text(chunk, special_tokens)
-    # and return it.
-    raise NotImplementedError
+    return pretokenize_text(chunk, special_tokens)
 
 
 def pre_tokenize(
@@ -160,8 +185,20 @@ def count_pairs(
     - sequences are tuples of token IDs (ints), e.g., (104,101,108,108,111)
     - Do not count pairs in sequences of length < 2.
     """
-    # TODO: implement
-    raise NotImplementedError
+    pairs_count: dict[tuple[int, int], int] = defaultdict(int)
+    pairs_to_sequences: dict[tuple[int, int], set[tuple[int, ...]]] = defaultdict(set)
+    sequences_to_pairs: dict[tuple[int, ...], set[tuple[int, int]]] = defaultdict(set)
+
+    for seq, count in inp.items():
+        if len(seq) < 2:
+            continue
+        for i in range(len(seq) - 1):
+            pair = (seq[i], seq[i + 1])
+            pairs_count[pair] += count
+            pairs_to_sequences[pair].add(seq)
+            sequences_to_pairs[seq].add(pair)
+
+    return dict(pairs_count), pairs_to_sequences, sequences_to_pairs
 
 
 def merge_pair(
@@ -181,8 +218,34 @@ def merge_pair(
     - Replace all occurrences of (a,b) in a sequence left-to-right.
     - Only sequences that change should appear in keys_to_remove/keys_to_add.
     """
-    # TODO: implement
-    raise NotImplementedError
+    a, b = old
+    keys_to_remove: list[tuple[int, ...]] = []
+    keys_to_add: list[tuple[list[int], int]] = []
+
+    # Iterate over a snapshot of the sequences that contain this pair
+    affected = list(pairs_to_sequences.get(old, set()))
+
+    for seq in affected:
+        count = byte_tokens_count.get(seq, 0)
+
+        # Replace all non-overlapping occurrences of (a, b) left-to-right
+        new_seq: list[int] = []
+        i = 0
+        changed = False
+        while i < len(seq):
+            if i < len(seq) - 1 and seq[i] == a and seq[i + 1] == b:
+                new_seq.append(new)
+                i += 2
+                changed = True
+            else:
+                new_seq.append(seq[i])
+                i += 1
+
+        if changed:
+            keys_to_remove.append(seq)
+            keys_to_add.append((new_seq, count))
+
+    return keys_to_remove, keys_to_add
 
 
 def select_best_pair(
